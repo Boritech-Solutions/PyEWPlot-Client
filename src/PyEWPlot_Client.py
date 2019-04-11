@@ -69,7 +69,6 @@ def index():
   matching = set(individualsta)
   matching = sorted(matching)
   return render_template('index.html', results=stations, results2 = matching)
-  
 
 # Main program start
 if __name__ == '__main__':
