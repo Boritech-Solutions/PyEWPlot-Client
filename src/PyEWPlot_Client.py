@@ -57,7 +57,6 @@ if DEBUG:
 # Start the web server
 app = Flask(__name__,static_url_path = "/tmp", static_folder = "tmp")
 
-
 @app.route('/')
 def index():
   stations = list(Channels.keys())
@@ -69,6 +68,26 @@ def index():
   matching = set(individualsta)
   matching = sorted(matching)
   return render_template('index.html', results=stations, results2 = matching)
+  
+# Station Graph stream page
+@app.route('/Station/<Stat>')
+def STAgraph(Stat):
+  stations = list(Channels.keys())
+  stations.sort()
+  matching = [s for s in stations if Stat in s]
+  matching.sort()
+  if not matching:
+    Status = "Incorrect Station or Station not ready"
+    exts = False
+  else:
+    Status = "Graphs for Station: " + Stat
+    exts = True
+  links = []
+  for match in matching:
+    links.append(Channels[match])
+  if DEBUG:
+    print(links)
+  return render_template('station.html', exist = exts, value=Status, stations=links)
 
 # Main program start
 if __name__ == '__main__':
