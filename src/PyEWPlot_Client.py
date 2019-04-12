@@ -20,8 +20,8 @@
 #       MA 02110-1301, USA.
 #       
 #       
-import configparser, argparse, json, urllib.request
-from flask import Flask, render_template
+import configparser, argparse, json, urllib.request, requests
+from flask import Flask, render_template, Response, stream_with_context
 
 DEBUG = False
 
@@ -82,12 +82,33 @@ def STAgraph(Stat):
   else:
     Status = "Graphs for Station: " + Stat
     exts = True
-  links = []
-  for match in matching:
-    links.append(Channels[match])
-  if DEBUG:
-    print(links)
-  return render_template('station.html', exist = exts, value=Status, stations=links)
+  return render_template('station.html', exist = exts, value=Status, stations=matching)
+
+# SCNL Graph stream page
+@app.route('/SCNL/<Stat>')
+def SCNLgraph(Stat):
+  stations = list(Channels.keys())
+  if Stat in stations:
+    Status = "Graph for Station/Component: " + Stat
+    exts = True
+  else: 
+    Status = "Incorrect Station or Station not ready"
+    exts = False
+  return render_template('graph.html', exist = exts, value=Status, station=Stat)
+
+# SCNL Graph stream page
+@app.route('/stream/<Stat>')
+def graph_feed(Stat):
+  stations = list(Channels.keys())
+  if Stat in stations:
+    Status = "Graph for Station/Component: " + Stat
+    req = requests.get(Channels[Stat], stream = True)
+    exts = True
+    return Response(stream_with_context(req.iter_content()), content_type = req.headers['content-type'])
+  else: 
+    Status = "Incorrect Station or Station not ready"
+    exts = False
+    return Response("Error", mimetype='text/html', status=500)
 
 # Main program start
 if __name__ == '__main__':
